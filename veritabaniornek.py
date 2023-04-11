@@ -8,6 +8,7 @@ formR=Tk()
 nameR = Entry(formR, bd =2,  width=22, font=('Arial 12'),justify='left')
 emailR = Entry(formR, bd =2,  width=22, font=('Arial 12'),justify='left')
 passwordR = Entry(formR, bd =2, show="*",  width=22, font=('Arial 12'),justify='left')
+passwordRConfirm = Entry(formR, bd =2, show="*",  width=22, font=('Arial 12'),justify='left')
 def registerForm():
     #buraya üye kayıt kodları gelecek   
     formR.title('Veritabanı Örnek Üye Kayıt')
@@ -25,16 +26,19 @@ def registerForm():
     emailR.place(x=80, y=160)
     e2=Label(formR,font=('Arial 12'),text="Şifreniz:")
     e2['bg'] = formR['bg']
-    e2.place(x=140,y=200)
-    
+    e2.place(x=140,y=200)    
     passwordR.place(x=80, y=250)
+    e4=Label(formR,font=('Arial 12'),text="Şifreniz Tekrar:")
+    e4['bg'] = formR['bg']
+    e4.place(x=140,y=300)
+    passwordRConfirm.place(x=80, y=350)
     nameR.focus()    
     registerBtn = tk.Button(formR, text="Üye Ol", font="Arial 11 bold", width=6,command=register)
-    registerBtn.place(x=80, y=300)
+    registerBtn.place(x=80, y=400)
     loginBtn = tk.Button(formR, text="Giriş", font="Arial 11 bold", width=6,command=loginForm)
-    loginBtn.place(x=220, y=300)
+    loginBtn.place(x=220, y=400)
     forgetBtn = tk.Button(formR, text="Şifremi Unuttum", font="Arial 11 bold", width=21)
-    forgetBtn.place(x=80, y=350)    
+    forgetBtn.place(x=80, y=450)    
     form.withdraw()
     formR.deiconify()
 def loginForm():
@@ -45,7 +49,7 @@ def anasayfa():
     form2.geometry("1000x600")
     form2.configure(bg="AntiqueWhite1")
     form.withdraw()
-    form2.mainloop()
+    form2.deiconify()
 def login():
     if(email.get()=="" or password.get()==""):
         messagebox.showinfo("Hata" , "Veri Girmediniz")
@@ -67,13 +71,35 @@ def register():
     if(emailR.get()=="" or passwordR.get()=="" or nameR.get()==""):
         messagebox.showinfo("Hata" , "Veri Girmediniz")
     else:
-        db = mysql.connector.connect(host ="localhost",user ='root',password='',db ="yurtseven")
-        cursor = db.cursor()
-        sorgu="INSERT INTO  users (name ,email ,password) VALUES(%s,%s,%s)"
-        vals = (nameR.get(),emailR.get(), passwordR.get(),)
-        cursor.execute(sorgu, vals)
-        messagebox.showinfo("Başarılı" , "Üye Kaydınız eklenmiştir")
-        loginForm()
+        if(passwordR.get()!=passwordRConfirm.get()):
+            passwordR.delete(0,END)
+            passwordRConfirm.delete(0,END)
+            passwordR.focus()
+            messagebox.showinfo("Hata" , "Şifre ve şifre tekrarı uyuşmuyor")
+        else:
+            if(len(passwordR.get())<6):
+                passwordR.delete(0,END)
+                passwordRConfirm.delete(0,END)
+                passwordR.focus()
+                messagebox.showinfo("Hata" , "Şifreniz en az 6 karakterden oluşmalıdır")
+            else:
+                db = mysql.connector.connect(host ="localhost",user ='root',password='',db ="yurtseven")
+                cursor = db.cursor()
+                sorgu = 'SELECT * FROM users WHERE email = %s'
+                vals = (emailR.get(),)
+                cursor.execute(sorgu, vals)
+                user = cursor.fetchone()
+                if user is not None:
+                    emailR.delete(0,END)
+                    emailR.focus()
+                    messagebox.showinfo("Bilgilendirme" , "Bu E-Posta daha önce kayıt olmuş!")  
+                else:
+                    cursor = db.cursor()
+                    sorgu="INSERT INTO  users (name ,email ,password) VALUES(%s,%s,%s)"
+                    vals = (nameR.get(),emailR.get(), passwordR.get(),)
+                    cursor.execute(sorgu, vals)
+                    messagebox.showinfo("Başarılı" , "Üye Kaydınız eklenmiştir")
+                    loginForm()
 
 form.title('Veritabanı Örnek V 1.0')
 form.geometry("400x400")
